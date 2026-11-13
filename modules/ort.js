@@ -10,7 +10,8 @@
        choix automatique des notions ;
      - synthèse vocale (voix française du navigateur) ;
      - rappel d'une règle ; accueil ; pages « Mon suivi » et « Fiches ».
-   Dépend de : assets/sommaire.js (SOM), regles.js (ORTHO_DONNEES), langue.js (ORT.L).
+   Dépend de : assets/sommaire.js (SOM), regles.js (ORTHO_DONNEES), langue.js (ORT.L),
+   sauvegarde.js (facultatif : carte « Ta sauvegarde », rappel après chaque dictée notée).
 
    Stockage (localStorage, toujours dans un try/catch) :
      orthographe-progression  (SOM) { derniere, pages: { <page>: { fait, note } } }
@@ -310,6 +311,8 @@
     });
     if (note != null) { suivi.notes.push([t0, type, note]); if (suivi.notes.length > 100) suivi.notes.splice(0, suivi.notes.length - 100); }
     ecrire(CLE_SUIVI, suivi);
+    // dictée notée : compteur du rappel de sauvegarde (modules/sauvegarde.js)
+    if (note != null && typeof ORT.apresDictee === 'function') ORT.apresDictee();
   }
   // les 20 dernières occasions d'une règle
   function stats(id) {
@@ -502,6 +505,8 @@
       d.appendChild(b); d.appendChild(o); liste.appendChild(d);
     });
     zone.appendChild(liste);
+    // carte « Ta sauvegarde » (modules/sauvegarde.js)
+    if (typeof ORT.carteSauvegarde === 'function') zone.appendChild(ORT.carteSauvegarde());
     // ligne « Tes réglages » (en dernier)
     const c = el('div', 'ort-reglages-ligne');
     c.appendChild(el('span', 'ort-petit', 'Tes réglages'));
