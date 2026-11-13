@@ -469,7 +469,7 @@
   // page d'un module (une seule par module)
   const cleDe = m => { const pt = m.parties[0]; return pt.questions || pt.entrainement || pt.cours; };
   function accueil(zone) {
-    const prog = SOM.lireProg(), pages = prog.pages || {};
+    const prog = SOM.lireProg();
     const der = prog.derniere && SOM.situer(prog.derniere) ? SOM.situer(prog.derniere).m : null;
     const derniereNote = t => { const l = notes(t); return l.length ? virg(l[l.length - 1][2]) + '/20' : ''; };
     zone.innerHTML = '';
@@ -479,7 +479,7 @@
     const liste = el('div', 'som-modules');
     PLAN.forEach((m, k) => {
       const cle = cleDe(m);
-      const etat = k === 0 ? derniereNote('c') : k === 1 ? derniereNote('b') : (pages[cle] && pages[cle].fait ? '✓' : '');
+      const etat = k === 0 ? derniereNote('c') : k === 1 ? derniereNote('b') : '';
       const d = el('div', 'som-module');
       const b = el('button', 'som-ligne', '<span class="som-badge">' + m.n + '</span><span class="som-ligne-t">' + esc(m.titre) + '<small>' + esc(m.desc) + '</small></span>' +
         '<span class="som-ligne-n">' + etat + '</span><span class="som-chev" aria-hidden="true">›</span>');
