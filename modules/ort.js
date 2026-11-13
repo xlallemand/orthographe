@@ -469,35 +469,15 @@
   // page d'un module (une seule par module)
   const cleDe = m => { const pt = m.parties[0]; return pt.questions || pt.entrainement || pt.cours; };
   function accueil(zone) {
-    const prog = SOM.lireProg();
-    const der = prog.derniere && SOM.situer(prog.derniere) ? SOM.situer(prog.derniere).m : null;
-    const derniereNote = t => { const l = notes(t); return l.length ? virg(l[l.length - 1][2]) + '/20' : ''; };
     zone.innerHTML = '';
-    // les 4 modules en lignes dépliables (un seul déplié à la fois)
-    const demande = (/^#module-(\d)$/.exec(location.hash) || [])[1];
-    const ouvert = demande ? +demande : der ? der.n : 1;
+    // les 4 modules : chaque ligne ouvre directement la page du module
     const liste = el('div', 'som-modules');
-    PLAN.forEach((m, k) => {
-      const cle = cleDe(m);
-      const etat = k === 0 ? derniereNote('c') : k === 1 ? derniereNote('b') : '';
+    PLAN.forEach(m => {
       const d = el('div', 'som-module');
-      const b = el('button', 'som-ligne', '<span class="som-badge">' + m.n + '</span><span class="som-ligne-t">' + esc(m.titre) + '<small>' + esc(m.desc) + '</small></span>' +
-        '<span class="som-ligne-n">' + etat + '</span><span class="som-chev" aria-hidden="true">›</span>');
-      b.type = 'button'; b.id = 'som-b' + m.n;
-      b.setAttribute('aria-expanded', m.n === ouvert);
-      b.setAttribute('aria-controls', 'som-m' + m.n);
-      const o = el('div', 'som-ouvert');
-      o.id = 'som-m' + m.n; o.setAttribute('role', 'region'); o.setAttribute('aria-labelledby', 'som-b' + m.n);
-      o.hidden = m.n !== ouvert;
-      const a = el('a', 'som-bt noir', k < 2 ? 'Commencer →' : 'Ouvrir →');
-      a.href = 'modules/' + cle + '.html';
-      const act = el('div', 'som-actions'); act.appendChild(a); o.appendChild(act);
-      b.addEventListener('click', () => {
-        const oui = b.getAttribute('aria-expanded') !== 'true';
-        liste.querySelectorAll('.som-ligne').forEach(x => { x.setAttribute('aria-expanded', 'false'); document.getElementById(x.getAttribute('aria-controls')).hidden = true; });
-        if (oui) { b.setAttribute('aria-expanded', 'true'); o.hidden = false; setTimeout(() => versVue(b), 30); }
-      });
-      d.appendChild(b); d.appendChild(o); liste.appendChild(d);
+      const a = el('a', 'som-ligne', '<span class="som-badge">' + m.n + '</span><span class="som-ligne-t">' + esc(m.titre) + '<small>' + esc(m.desc) + '</small></span>' +
+        '<span class="som-chev" aria-hidden="true">›</span>');
+      a.href = 'modules/' + cleDe(m) + '.html';
+      d.appendChild(a); liste.appendChild(d);
     });
     zone.appendChild(liste);
     // zones dépliables « Ta sauvegarde » (modules/sauvegarde.js) et « Tes réglages » (en dernier), séparées des modules
@@ -522,7 +502,6 @@
     c.appendChild(t); c.appendChild(cc);
     annexes.appendChild(c);
     zone.appendChild(annexes);
-    if (demande) setTimeout(() => { const b = document.getElementById('som-b' + demande); if (b) b.scrollIntoView({ block: 'center' }); }, 60);
   }
 
   /* =====================================================================

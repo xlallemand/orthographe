@@ -177,6 +177,12 @@
   function sommaire(s, pages, ex) {
     return C.plan.map(m => {
       const ici = s.m === m, n = faitModule(m, pages, ex), t = totalModule(m), fini = C.coches && n === t;
+      // module d'une seule page (ni fiche ni exercices) : la ligne est un lien direct vers la page, pas de sous-menu
+      if (t === 1 && parties(m).length === 1 && !m.fiche && !m.exercices) {
+        const pt = parties(m)[0];
+        return `<div class="som-smod${ici ? ' ici' : ''}"><a class="som-sligne" href="${lien(m, pt, pagesPartie(pt)[0])}"${ici ? ' aria-current="page"' : ''}>` +
+          `<span class="som-snum${fini ? ' fait' : ''}">${fini ? '✓' : m.n}</span><span class="som-st">${m.titre}</span>${C.coches ? `<span class="som-sn">${n}/${t}</span>` : ''}${chev}</a></div>`;
+      }
       let enfants;
       // une seule liste : les pages de chaque partie (sous-modules compris), puis la fiche
       if (plat(m)) enfants = `<div class="som-spages">${parties(m).map(p => feuillesPages(m, p, s, pages)).join('')}${feuilleFiche(m, null, s)}${m.exercices ? feuilleEx(m, s, pages) : ''}</div>`;
@@ -238,7 +244,7 @@
         `<a class="som-pilule" href="${portail()}"><span aria-hidden="true">⌂</span>Accueil</a></div>` +
         `<p class="som-lab">Sommaire</p><nav class="som-arbre" aria-label="Modules">${sommaire(s, pages, ex)}</nav></aside>`;
       // déplier / replier un module ou une partie sur place
-      racine.querySelectorAll('.som-sligne, .som-spt').forEach(b => b.addEventListener('click', () => {
+      racine.querySelectorAll('button.som-sligne, .som-spt').forEach(b => b.addEventListener('click', () => {
         const oui = b.getAttribute('aria-expanded') !== 'true';
         b.setAttribute('aria-expanded', oui);
         document.getElementById(b.getAttribute('aria-controls')).hidden = !oui;
@@ -246,7 +252,7 @@
       racine.querySelector('.som-ou').addEventListener('click', () => ouvrir(!html.classList.contains('som-ouvert')));
       racine.querySelector('.som-voile').addEventListener('click', () => ouvrir(false));
       // un lien vers une autre partie de la même page ne recharge pas la page : on referme
-      racine.querySelectorAll('.som-page, .som-pilule, .som-app').forEach(a => a.addEventListener('click', () => ouvrir(false)));
+      racine.querySelectorAll('.som-page, a.som-sligne, .som-pilule, .som-app').forEach(a => a.addEventListener('click', () => ouvrir(false)));
       // ordinateur : la page en cours visible dans la colonne
       const ici = racine.querySelector('.som-page.ici'), col = racine.querySelector('.som-som');
       if (ici && col.scrollHeight > col.clientHeight) col.scrollTop = ici.offsetTop - col.clientHeight / 2;

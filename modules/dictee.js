@@ -427,7 +427,7 @@
     if (e === 'p2' || e === 'p3' || tout) {
       const r = el('div', 'ort-rangee');
       if (e === 'p2' || tout) {
-        const a = bouton('ort-icone', '🧭 Aide : verbe → sujet', () => {
+        const a = bouton('ort-icone', 'Aide : verbe → sujet', () => {
           etat.aide = etat.aide ? null : { verbe: null, trouve: false, msg: 'Touche un verbe conjugué.' };
           refaire();
         });
@@ -435,7 +435,7 @@
         r.appendChild(a);
       }
       if (e === 'p3' || tout) {
-        const t = bouton('ort-icone', '🔁 Tests de remplacement', () => { etat.tests = !etat.tests; refaire(); });
+        const t = bouton('ort-icone', 'Tests de remplacement', () => { etat.tests = !etat.tests; refaire(); });
         t.setAttribute('aria-pressed', !!etat.tests);
         r.appendChild(t);
       }
