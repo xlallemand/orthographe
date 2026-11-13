@@ -29,7 +29,7 @@
                              prochain rappel, date de la dernière copie (jamais copié)
 
    API :
-     ORT.carteSauvegarde()   carte « Ta sauvegarde » de l'accueil (élément)
+     ORT.carteSauvegarde()   zone dépliable « Ta sauvegarde » de l'accueil (élément)
      ORT.apresDictee()       appelé par ORT.enregistrer à chaque dictée notée
      ORT.sauvegarde : { enregistrer(), restaurer(), installer(), paquet(), importer(paquet), fichier(paquet) }
    ============================================================ */
@@ -499,35 +499,56 @@
   }
 
   /* =====================================================================
-     Carte « Ta sauvegarde » de l'accueil
+     Zone « Ta sauvegarde » de l'accueil (dépliable)
+     Repliée : le titre et, s'il le faut, les alertes (progression non protégée,
+     pas de copie depuis RAPPEL dictées ou plus).
      ===================================================================== */
-  let carte = null;
+  let carte = null, carteT = null, carteC = null, carteOuverte = false;
   function carteSauvegarde() {
-    carte = el('div', 'sauv-carte');
+    carte = el('div', 'ort-zone sauv-carte');
     carte.id = 'sauvegarde';
+    carteT = el('button', 'ort-zone-t');
+    carteT.type = 'button';
+    carteT.setAttribute('aria-controls', 'sauvegarde-c');
+    carteT.addEventListener('click', () => { carteOuverte = !carteOuverte; majCarte(); });
+    carteC = el('div', 'ort-zone-c');
+    carteC.id = 'sauvegarde-c';
+    carte.appendChild(carteT); carte.appendChild(carteC);
     majCarte();
     return carte;
   }
   function majCarte() {
     if (!carte) return;
     const e = lireEtat(), s = stockage(), p = s ? paquet() : null, inst = installee();
-    carte.innerHTML = '';
-    carte.classList.toggle('due', e.n >= e.seuil);
-    carte.appendChild(el('span', 'ort-petit', 'Ta sauvegarde'));
-    const l = el('ul', 'sauv-etat');
-    const ligne = (ic, t, cls) => { const li = el('li', cls || ''); li.appendChild(el('span', 'sauv-ic', ic)).setAttribute('aria-hidden', 'true'); li.appendChild(el('span', '', t)); l.appendChild(li); };
-    if (!s) ligne('⚠', 'Ce navigateur ne garde pas ta progression (navigation privée ou réglage) : travaille dans une fenêtre normale.', 'alerte');
+    // en-tête : titre, alertes, chevron
+    carteT.innerHTML = '';
+    carteT.setAttribute('aria-expanded', String(carteOuverte));
+    carteT.appendChild(el('span', 'ort-zone-nom', 'Ta sauvegarde'));
+    const al = el('span', 'ort-zone-alertes');
+    if (!s) al.appendChild(el('span', 'ort-zone-alerte', 'Non enregistrée'));
     else {
-      ligne('✓', 'Ta progression s’enregistre toute seule sur cet appareil, à chaque dictée.');
-      if (protegee) ligne('🔒', 'Protégée : l’appareil ne l’effacera pas de lui-même.');
-      else if (inst) ligne('⚠', 'L’appareil peut l’effacer s’il manque de place : garde une copie.', 'alerte');
-      else if (ios) ligne('⚠', 'Dans Safari, elle est effacée si tu n’ouvres pas l’application pendant 7 jours. Installe l’application pour la protéger.', 'alerte');
-      else ligne('⚠', 'Le navigateur peut l’effacer (nettoyage, manque de place). Installe l’application pour la protéger.', 'alerte');
-      const n = e.n;
-      if (e.derniere) ligne('💾', 'Dernière copie : le ' + dateCourte(new Date(e.derniere)) + (n ? ' (' + pluriel(n, 'dictée') + ' depuis)' : '') + '.', n >= e.seuil ? 'alerte' : '');
-      else ligne('💾', 'Aucune copie pour l’instant' + (p && aDuContenu(p) ? ' : enregistre-en une.' : '.'), n >= e.seuil ? 'alerte' : '');
+      if (!protegee) al.appendChild(el('span', 'ort-zone-alerte', 'Non protégée'));
+      if (e.n >= RAPPEL) al.appendChild(el('span', 'ort-zone-alerte', pluriel(e.n, 'dictée') + ' sans copie'));
     }
-    carte.appendChild(l);
+    if (al.childNodes.length) carteT.appendChild(al);
+    carteT.appendChild(el('span', 'ort-zone-chev', '›')).setAttribute('aria-hidden', 'true');
+    // contenu
+    carteC.hidden = !carteOuverte;
+    carteC.innerHTML = '';
+    const l = el('ul', 'sauv-etat');
+    const ligne = (t, cls) => l.appendChild(el('li', cls || '', t));
+    if (!s) ligne('Ce navigateur ne garde pas ta progression (navigation privée ou réglage) : travaille dans une fenêtre normale.', 'alerte');
+    else {
+      ligne('Ta progression s’enregistre toute seule sur cet appareil, à chaque dictée.');
+      if (protegee) ligne('Protégée : l’appareil ne l’effacera pas de lui-même.');
+      else if (inst) ligne('Non protégée : l’appareil peut l’effacer s’il manque de place. Garde une copie.', 'alerte');
+      else if (ios) ligne('Non protégée : dans Safari, elle est effacée si tu n’ouvres pas l’application pendant 7 jours. Installe l’application pour la protéger.', 'alerte');
+      else ligne('Non protégée : le navigateur peut l’effacer (nettoyage, manque de place). Installe l’application pour la protéger.', 'alerte');
+      const n = e.n, retard = n >= RAPPEL ? 'alerte' : '';
+      if (e.derniere) ligne('Dernière copie : le ' + dateCourte(new Date(e.derniere)) + (n ? ' (' + pluriel(n, 'dictée') + ' depuis)' : '') + '.', retard);
+      else ligne('Aucune copie pour l’instant' + (p && aDuContenu(p) ? ' : enregistre-en une.' : '.'), retard);
+    }
+    carteC.appendChild(l);
     // boutons
     const r = el('div', 'sauv-boutons');
     r.appendChild(bouton((e.n >= e.seuil ? 'btn-primary' : 'btn-secondary') + ' sauv-pt', 'Enregistrer une copie', () => enregistrer('auto')));
@@ -536,11 +557,11 @@
     r.appendChild(bouton('btn-secondary sauv-pt', 'Restaurer une copie', restaurer));
     const peutInstaller = surLeWeb && !inst && (invite || ios || android);
     if (peutInstaller) {
-      const bi = bouton('btn-secondary sauv-pt', '📲 Installer l’application', installer);
+      const bi = bouton('btn-secondary sauv-pt', 'Installer l’application', installer);
       if (!invite) bi.setAttribute('aria-expanded', String(aideInstall));
       r.appendChild(bi);
     }
-    carte.appendChild(r);
+    carteC.appendChild(r);
     // marche à suivre pour installer (pas d'invitation du navigateur)
     if (peutInstaller && !invite && aideInstall) {
       const a = el('div', 'sauv-aide');
@@ -548,13 +569,13 @@
         a.appendChild(el('p', '', 'Dans Safari : touche le bouton Partager (le carré avec une flèche vers le haut), puis « Sur l’écran d’accueil », puis « Ajouter ».'));
         if (p && aDuContenu(p)) a.appendChild(el('p', '', 'Sur iPhone et iPad, l’application installée ne reprend pas ce que tu as fait dans Safari : enregistre d’abord une copie ici, puis, dans l’application, touche « Restaurer une copie ».'));
       } else a.appendChild(el('p', '', 'Ouvre le menu du navigateur (⋮), puis « Installer l’application » ou « Ajouter à l’écran d’accueil ».'));
-      carte.appendChild(a);
+      carteC.appendChild(a);
     }
     // où va la copie
     const ou = ios ? 'La copie : choisis « Enregistrer dans Fichiers », puis iCloud Drive. Pour la reprendre : « Restaurer une copie », puis le fichier le plus récent.'
       : android ? 'La copie va dans Téléchargements' + (envoyer ? ' (ou sur ton Drive avec « Envoyer »)' : '') + '. Pour la reprendre : « Restaurer une copie », puis le fichier le plus récent.'
         : 'La copie va dans Téléchargements. Pour la reprendre : ouvre-la, ou « Restaurer une copie ».';
-    carte.appendChild(el('p', 'ort-petit sauv-ou', ou));
+    carteC.appendChild(el('p', 'ort-petit sauv-ou', ou));
   }
 
   /* =====================================================================

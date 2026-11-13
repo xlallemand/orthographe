@@ -53,7 +53,7 @@
     { n: 4, titre: 'Fiches de règles', desc: 'Les règles de chaque famille, avec leurs tests.',
       parties: [{ nom: 'Fiches de règles', cours: 'fiches', noms: { cours: 'Fiches de règles' } }] }
   ];
-  SOM.init({ nom: 'Orthographe', id: 'orthographe', plan: PLAN });
+  SOM.init({ nom: 'Orthographe', id: 'orthographe', coches: false, plan: PLAN });   // sommaire sans coches : le suivi des compétences suffit
 
   /* ---------- Petits outils ---------- */
   function el(tag, cls, html) { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
@@ -473,11 +473,6 @@
     const der = prog.derniere && SOM.situer(prog.derniere) ? SOM.situer(prog.derniere).m : null;
     const derniereNote = t => { const l = notes(t); return l.length ? virg(l[l.length - 1][2]) + '/20' : ''; };
     zone.innerHTML = '';
-    if (der) {
-      const a = el('a', 'som-reprendre', '<small>Reprendre</small><b>' + esc(der.titre) + ' →</b>');
-      a.href = 'modules/' + cleDe(der) + '.html';
-      zone.appendChild(a);
-    }
     // les 4 modules en lignes dépliables (un seul déplié à la fois)
     const demande = (/^#module-(\d)$/.exec(location.hash) || [])[1];
     const ouvert = demande ? +demande : der ? der.n : 1;
@@ -505,18 +500,28 @@
       d.appendChild(b); d.appendChild(o); liste.appendChild(d);
     });
     zone.appendChild(liste);
-    // carte « Ta sauvegarde » (modules/sauvegarde.js)
-    if (typeof ORT.carteSauvegarde === 'function') zone.appendChild(ORT.carteSauvegarde());
-    // ligne « Tes réglages » (en dernier)
-    const c = el('div', 'ort-reglages-ligne');
-    c.appendChild(el('span', 'ort-petit', 'Tes réglages'));
+    // zones dépliables « Ta sauvegarde » (modules/sauvegarde.js) et « Tes réglages » (en dernier), séparées des modules
+    const annexes = el('div', 'ort-annexes');
+    if (typeof ORT.carteSauvegarde === 'function') annexes.appendChild(ORT.carteSauvegarde());
+    const c = el('div', 'ort-zone ort-reglages-ligne');
+    const t = bouton('ort-zone-t', '<span class="ort-zone-nom">Tes réglages</span><span class="ort-zone-chev" aria-hidden="true">›</span>', () => {
+      const oui = t.getAttribute('aria-expanded') !== 'true';
+      t.setAttribute('aria-expanded', String(oui));
+      cc.hidden = !oui;
+    });
+    t.setAttribute('aria-expanded', 'false');
+    t.setAttribute('aria-controls', 'reglages-c');
+    const cc = el('div', 'ort-zone-c');
+    cc.id = 'reglages-c'; cc.hidden = true;
+    // le bouton Réglages, puis le récapitulatif
+    cc.appendChild(bouton('btn-small', '⚙ Réglages', ouvrirReglages));
     const tags = el('div', 'ort-tags');
-    const majTags = () => {
-      tags.innerHTML = resumeReglages().map(t => '<span class="ort-tag">' + esc(t) + '</span>').join('');
-      tags.appendChild(bouton('btn-small', '⚙ Réglages', ouvrirReglages));
-    };
+    const majTags = () => { tags.innerHTML = resumeReglages().map(x => '<span class="ort-tag">' + esc(x) + '</span>').join(''); };
     majTags(); ecoutes.push(majTags);
-    c.appendChild(tags); zone.appendChild(c);
+    cc.appendChild(tags);
+    c.appendChild(t); c.appendChild(cc);
+    annexes.appendChild(c);
+    zone.appendChild(annexes);
     if (demande) setTimeout(() => { const b = document.getElementById('som-b' + demande); if (b) b.scrollIntoView({ block: 'center' }); }, 60);
   }
 

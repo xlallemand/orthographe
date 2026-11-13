@@ -28,19 +28,34 @@
 .ort-tag { background: var(--paper); border-radius: 999px; padding: 4px 11px; font-size: .82rem; font-weight: 600; color: var(--ink-2); }
 .ort-notions { margin-top: 8px !important; }
 .ort-notions:empty { display: none; }
-.ort-reglages-ligne { background: var(--sheet); border: 1px solid var(--line); border-radius: 22px; padding: 14px 18px; }
-.ort-reglages-ligne .ort-tags { margin-top: 6px; }
+
+/* ---------- accueil : zones dépliables « Ta sauvegarde » et « Tes réglages » ---------- */
+/* même allure que les lignes des modules, plus petites, teintées de prune, séparées des modules */
+.ort-annexes { display: flex; flex-direction: column; gap: 8px; margin-top: 22px; }
+.ort-zone { background: var(--cle-bg); border-radius: 18px; }
+.ort-zone-t {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 46px; padding: 8px 16px; border: none; background: none;
+  border-radius: 18px; cursor: pointer; font: inherit; color: var(--ink); text-align: left; transition: background .15s;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) { .ort-zone-t:hover { background: var(--cle-line); } }
+.ort-zone-t:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ort-zone-nom { flex: 1 0 auto; white-space: nowrap; font-weight: 800; font-size: .95rem; letter-spacing: -.01em; color: var(--accent-ink); }
+.ort-zone-alertes { flex: 0 1 auto; min-width: 0; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; }
+.ort-zone-alerte { border-radius: 999px; padding: 3px 10px; font-size: .74rem; font-weight: 800; background: var(--accent); color: var(--sheet); white-space: nowrap; }
+.ort-zone-chev { flex: none; color: var(--accent-ink); font-weight: 800; font-size: 1.1rem; transition: transform .15s; }
+.ort-zone-t[aria-expanded="true"] .ort-zone-chev { transform: rotate(90deg); }
+.ort-zone-c { padding: 0 16px 14px; }
+.ort-zone-c[hidden] { display: none; }
+.ort-zone .ort-tag { background: var(--sheet); }
+.ort-reglages-ligne .ort-tags { margin-top: 10px; }
 
 /* ---------- sauvegarde de la progression (modules/sauvegarde.js) ---------- */
-.sauv-carte { background: var(--sheet); border: 1px solid var(--line); border-radius: 22px; padding: 14px 18px; }
-.sauv-carte.due { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-.sauv-etat { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 4px; font-size: .9rem; line-height: 1.45; }
-.sauv-etat li { display: flex; gap: 8px; align-items: flex-start; }
-.sauv-etat li.alerte { color: var(--accent-ink); font-weight: 600; }
-.sauv-ic { flex: none; width: 1.3em; text-align: center; }
+.sauv-etat { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: .9rem; line-height: 1.45; }
+.sauv-etat li.alerte { color: var(--accent-ink); font-weight: 700; }
 .sauv-boutons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .btn-primary.sauv-pt, .btn-secondary.sauv-pt { padding: 10px 16px; font-size: .9rem; }
-.sauv-aide { margin-top: 10px; padding: 10px 14px; border-radius: 14px; background: var(--cle-bg); font-size: .9rem; line-height: 1.45; }
+.sauv-aide { margin-top: 10px; padding: 10px 14px; border-radius: 14px; background: var(--sheet); font-size: .9rem; line-height: 1.45; }
 .sauv-aide p { margin: 0; }
 .sauv-aide p + p { margin-top: 6px; }
 .sauv-ou { margin: 10px 0 0; }
@@ -89,6 +104,15 @@ html.ort-tiroir-ouvert { overflow: hidden; }
 .ort-seg button[aria-pressed="true"] { background: var(--sheet); color: var(--ink); font-weight: 800; box-shadow: inset 0 0 0 1.5px var(--ink); }
 .ort-seg.off { opacity: .45; }
 .ort-seg.off button { cursor: default; }
+/* panneau des réglages : nom du réglage au-dessus, choix sur toute la largeur en parts égales
+   (jamais de retour à la ligne entre les choix : un long libellé passe sur deux lignes dans son bouton) */
+.ort-tiroir .ort-lig { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 6px; margin: 12px 0; }
+.ort-tiroir .ort-lig > span { min-width: 0; font-size: .86rem; font-weight: 700; color: var(--accent-ink); }
+.ort-tiroir .ort-seg { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 3px; background: var(--cle-bg); }
+.ort-tiroir .ort-seg button { padding: 7px 6px; line-height: 1.2; text-align: center; color: var(--accent-ink); transition: background .15s; }
+@media (hover: hover) { .ort-tiroir .ort-seg:not(.off) button:hover:not([aria-pressed="true"]) { background: var(--cle-line); } }
+.ort-tiroir .ort-seg button[aria-pressed="true"] { background: var(--accent); color: var(--sheet); box-shadow: none; }
+.ort-tiroir .ort-voix { flex: none; }
 .ort-fam { border: 1px solid var(--line); border-radius: 14px; margin: 6px 0; }
 .ort-fam-t { display: flex; align-items: center; gap: 10px; padding: 6px 12px; }
 .ort-fam-o { flex: 1; display: flex; align-items: center; gap: 8px; min-height: 40px; border: none; background: none; padding: 0; text-align: left; cursor: pointer; font-size: .95rem; color: var(--ink); }
@@ -305,5 +329,5 @@ html.ort-tiroir-ouvert { overflow: hidden; }
 .ort-cas .ort-ex { font-size: .93rem; margin-top: 2px; }
 .ort-plus { border: none; background: none; color: var(--accent-ink); font-weight: 700; font-size: .92rem; padding: 10px; min-height: 44px; cursor: pointer; }
 
-@media (prefers-reduced-motion: reduce) { .ort-chev { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .ort-chev, .ort-zone-chev { transition: none; } }
 

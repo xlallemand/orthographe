@@ -10,6 +10,7 @@
        id: 'ph',                     clé de progression : localStorage « ph-progression »
        cleEx: 'ph-exercices',        (facultatif) résultats des exercices { id: { pts, max } }
        spa: false,                   true : application en une seule page, les pages sont des ancres (#cle)
+       coches: true,                 false : le sommaire n'affiche pas l'avancement (coches, compteurs, notes des pages)
        flashcards: false,            true : l'application a des flashcards (modules/flashcards.js, voir assets/revisions.js) :
                                      entrée « Flashcards » du sommaire ; sur l'accueil, le bloc, les boutons des modules et la ligne
        plan: PLAN,
@@ -36,7 +37,7 @@
 (function () {
   'use strict';
 
-  const C = { nom: '', id: 'app', cleEx: null, spa: false, flashcards: false, plan: [] };
+  const C = { nom: '', id: 'app', cleEx: null, spa: false, coches: true, flashcards: false, plan: [] };
 
   // types de pages d'une partie, dans l'ordre d'affichage
   const ONGLETS = ['simulation', 'cours', 'exemple', 'questions', 'entrainement'];
@@ -169,23 +170,23 @@
     `<a class="som-page${ici ? ' ici' : ''}" href="${href}"${ici ? ' aria-current="page"' : ''}><span class="ic" aria-hidden="true">${ic}</span>${lib}${etat ? `<em>${etat}</em>` : ''}</a>`;
   // les pages d'une partie (Cours ✓, Questions 16/20…)
   const feuillesPages = (m, p, s, pages) =>
-    pagesPartie(p).map(o => feuille(lien(m, p, o), ICONES[o], nomPage(p, o), etatPage(p[o], pages), s.m === m && s.p === p && s.onglet === o)).join('');
+    pagesPartie(p).map(o => feuille(lien(m, p, o), ICONES[o], nomPage(p, o), C.coches ? etatPage(p[o], pages) : '', s.m === m && s.p === p && s.onglet === o)).join('');
   // la fiche du module (p : la partie dont la fiche s'ouvre à l'ancre ; null : la fiche entière)
   const feuilleFiche = (m, p, s) => (m.fiche ? feuille(lien(m, p, 'fiche'), ICONES.fiche, 'Fiche', '', s.m === m && s.onglet === 'fiche' && (!p || s.p === p)) : '');
-  const feuilleEx = (m, s, pages) => feuille(lien(m, null, 'exercices'), ICONES.exercices, m.exNom || 'Exercices', m.nbEx ? '' : etatPage(m.exercices, pages), s.m === m && s.onglet === 'exercices');
+  const feuilleEx = (m, s, pages) => feuille(lien(m, null, 'exercices'), ICONES.exercices, m.exNom || 'Exercices', m.nbEx || !C.coches ? '' : etatPage(m.exercices, pages), s.m === m && s.onglet === 'exercices');
   function sommaire(s, pages, ex) {
     return C.plan.map(m => {
-      const ici = s.m === m, n = faitModule(m, pages, ex), t = totalModule(m), fini = n === t;
+      const ici = s.m === m, n = faitModule(m, pages, ex), t = totalModule(m), fini = C.coches && n === t;
       let enfants;
       // une seule liste : les pages de chaque partie (sous-modules compris), puis la fiche
       if (plat(m)) enfants = `<div class="som-spages">${parties(m).map(p => feuillesPages(m, p, s, pages)).join('')}${feuilleFiche(m, null, s)}${m.exercices ? feuilleEx(m, s, pages) : ''}</div>`;
       else enfants = m.parties.map((p, i) => {
         const pici = ici && s.p === p, id = `som-s${m.n}-${i}`;
-        return `<button type="button" class="som-spt${pici ? ' ici' : ''}" aria-expanded="${pici}" aria-controls="${id}">${partieFaite(p, pages) ? '<span class="som-v" aria-label="terminé">✓</span>' : ''}${p.nom}${chev}</button>` +
+        return `<button type="button" class="som-spt${pici ? ' ici' : ''}" aria-expanded="${pici}" aria-controls="${id}">${C.coches && partieFaite(p, pages) ? '<span class="som-v" aria-label="terminé">✓</span>' : ''}${p.nom}${chev}</button>` +
           `<div class="som-spages" id="${id}"${pici ? '' : ' hidden'}>${feuillesPages(m, p, s, pages)}${feuilleFiche(m, p, s)}</div>`;
       }).join('') + (m.exercices ? `<div class="som-spages">${feuilleEx(m, s, pages)}</div>` : '');
       return `<div class="som-smod${ici ? ' ici' : ''}"><button type="button" class="som-sligne" aria-expanded="${ici}" aria-controls="som-s${m.n}">` +
-        `<span class="som-snum${fini ? ' fait' : ''}">${fini ? '✓' : m.n}</span><span class="som-st">${m.titre}</span><span class="som-sn">${n}/${t}</span>${chev}</button>` +
+        `<span class="som-snum${fini ? ' fait' : ''}">${fini ? '✓' : m.n}</span><span class="som-st">${m.titre}</span>${C.coches ? `<span class="som-sn">${n}/${t}</span>` : ''}${chev}</button>` +
         `<div class="som-senf" id="som-s${m.n}"${ici ? '' : ' hidden'}>${enfants}</div></div>`;
     }).join('') + (C.flashcards ? sommaireFc(s) : '');
   }
@@ -321,7 +322,7 @@
   }
 
   // (chaque appel remplace toute la configuration : une page qui charge le moteur d'une autre application la reconfigure)
-  function init(opts) { Object.assign(C, { nom: '', id: 'app', cleEx: null, spa: false, flashcards: false, plan: [] }, opts); compteFc = ''; return window.SOM; }
+  function init(opts) { Object.assign(C, { nom: '', id: 'app', cleEx: null, spa: false, coches: true, flashcards: false, plan: [] }, opts); compteFc = ''; return window.SOM; }
 
   window.SOM = { init, menu, accueil, marquer, situer, libelle, lireProg, NOMS, contexte, flashcards };
 })();
