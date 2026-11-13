@@ -562,10 +562,6 @@
     const c = el('div', 'er-card');
     const tete = el('div', 'ort-rangee ort-entre');
     tete.appendChild(el('h3', 'ort-h3', 'Mes compétences'));
-    tete.appendChild(bouton('btn-small ort-imprimer', '🖨 Imprimer mon bilan', () => {
-      document.querySelectorAll('.ort-grp').forEach(g => { g.classList.add('ouvert'); g.querySelector('.ort-grp-t').setAttribute('aria-expanded', 'true'); });
-      window.print();
-    }));
     c.appendChild(tete);
     D.familles.forEach(f => {
       const Lr = D.regles.filter(x => x.famille === f.id);
