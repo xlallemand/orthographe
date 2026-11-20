@@ -956,7 +956,7 @@
     function resultat() {
       if (!DC.res) {
         DC.res = evaluer();
-        ORT.enregistrer(DC.res.occ, DC.res.note, 'c');
+        DC.nouveaux = ORT.enregistrer(DC.res.occ, DC.res.note, 'c', { audio: DC.m === 'audio' });
         SOM.marquer({ note: DC.res.note });
         ORT.menu('dictee_courte');                       // sommaire à jour (meilleure note)
       }
@@ -974,6 +974,9 @@
       c.appendChild(el('p', 'ort-lab', 'Réussite par type d’erreur'));
       c.appendChild(pastillesFamilles(ev.fam));
       c.appendChild(el('p', 'ort-message', ev.note >= 20 ? 'Sans faute : bravo !' : ev.note >= 14 ? 'Très bien : regarde tes erreurs et leur règle.' : ev.note >= 10 ? 'C’est en bonne voie : relis la règle de chaque erreur.' : 'Reprends chaque erreur avec sa règle, puis refais une dictée sur ces notions.'));
+      // nouveaux succès de la dictée (modules/mes-succes.js)
+      const nsC = ORT.blocSucces ? ORT.blocSucces(DC.nouveaux || []) : null;
+      if (nsC) c.appendChild(nsC);
       zone.appendChild(c);
       const c2 = el('div', 'er-card');
       c2.appendChild(el('h3', 'ort-h3', ev.err.length ? 'Tes erreurs (' + ev.err.length + ')' : 'Aucune erreur !'));
@@ -1037,7 +1040,7 @@
       } else {
         const x = BV.id ? textes.find(y => y.id === BV.id) : L.tirer(textes);
         const toks = L.lirePhrase(x.texte);
-        t = { toks, cibles: toks.map((y, i) => (y.piege ? i : -1)).filter(i => i >= 0), oeuvre: x.oeuvre, session: x.session, centre: x.centre, tableau: x.tableau };
+        t = { id: x.id, toks, cibles: toks.map((y, i) => (y.piege ? i : -1)).filter(i => i >= 0), oeuvre: x.oeuvre, session: x.session, centre: x.centre, tableau: x.tableau };
       }
       ET = etapesBrevet();
       BV = Object.assign(BV, { phase: 'etapes', k: 0, t, copie: '', douteux: [], aide: null, tests: false, envers: null, res: null, cumul: 0, depuis: 0, finDictee: false, relu: false });
@@ -1242,7 +1245,7 @@
     function resultat() {
       if (!BV.res) {
         BV.res = evaluer();
-        ORT.enregistrer(BV.res.occ, BV.res.note, 'b');
+        BV.nouveaux = ORT.enregistrer(BV.res.occ, BV.res.note, 'b', { sujet: BV.t.genere ? null : BV.t.id });
         SOM.marquer({ note: BV.res.note });
         ORT.menu('dictee_brevet');                       // sommaire à jour (meilleure note)
       }
@@ -1253,6 +1256,9 @@
         '<p class="ort-petit">Temps utilisé : ' + Math.round(ecoule() / 60000) + ' min sur 20.</p>';
       c.appendChild(el('p', 'ort-lab', 'Réussite par type d’erreur'));
       c.appendChild(pastillesFamilles(ev.fam));
+      // nouveaux succès de la dictée (modules/mes-succes.js)
+      const nsB = ORT.blocSucces ? ORT.blocSucces(BV.nouveaux || []) : null;
+      if (nsB) c.appendChild(nsB);
       zone.appendChild(c);
       const c2 = el('div', 'er-card');
       c2.appendChild(el('h3', 'ort-h3', ev.err.length ? 'Tes fautes (' + ev.err.length + ')' : 'Aucune faute !'));

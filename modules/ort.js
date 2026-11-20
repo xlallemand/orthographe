@@ -9,7 +9,8 @@
        historique des notes, statut de chaque règle, priorités et
        choix automatique des notions ;
      - synthèse vocale (voix française du navigateur) ;
-     - rappel d'une règle ; accueil ; pages « Mon suivi » et « Fiches ».
+     - rappel d'une règle ; accueil ; pages « Mon suivi » (et ses succès,
+       modules/mes-succes.js) et « Fiches ».
    Dépend de : assets/sommaire.js (SOM), regles.js (ORTHO_DONNEES), langue.js (ORT.L),
    sauvegarde.js (facultatif : carte « Ta sauvegarde », rappel après chaque dictée notée).
 
@@ -24,7 +25,9 @@
      ORT.menu(cle)                 sommaire (SOM.menu) + bouton Réglages
      ORT.reglages()                réglages en cours ; ORT.regler(cle, val) ; ORT.ouvrirReglages() ; ORT.surReglages(fn)
      ORT.resumeReglages()          étiquettes du résumé des réglages
-     ORT.enregistrer(occ, note, type)   occasions [{ r, ok }] et note sur 20 ('c' dictée courte, 'b' brevet)
+     ORT.enregistrer(occ, note, type, info)   occasions [{ r, ok }] et note sur 20 ('c' dictée courte, 'b' brevet) ;
+                                   info (succès) : { audio } (dictée courte), { sujet } (dictée brevet déjà tombée) ;
+                                   renvoie les nouveaux succès [{ s, niv }]
      ORT.statut(id) 'm' maîtrisée | 'f' fragile | 't' à travailler | 'n' pas encore vue | 'v' prérequis à acquérir
      ORT.taux(id) ; ORT.priorites() ; ORT.choixAuto() ; ORT.notes(type)
      ORT.voix : { dispo(), dire(liste, opts), arreter(), liste(), surChange(fn) }
@@ -48,7 +51,7 @@
       parties: [{ nom: 'Dictée courte', questions: 'dictee_courte', noms: { questions: 'Dictée courte' } }] },
     { n: 2, titre: 'Dictée brevet', desc: 'Une dictée complète, en conditions réelles (20 min).',
       parties: [{ nom: 'Dictée brevet', questions: 'dictee_brevet', noms: { questions: 'Dictée brevet' } }] },
-    { n: 3, titre: 'Mon suivi', desc: 'Ce que tu maîtrises et ce qu’il faut travailler en priorité.',
+    { n: 3, titre: 'Mon suivi', desc: 'Ce que tu maîtrises, ce qu’il faut travailler en priorité, et tes succès.',
       parties: [{ nom: 'Mon suivi', entrainement: 'suivi', noms: { entrainement: 'Mon suivi' } }] },
     { n: 4, titre: 'Fiches de règles', desc: 'Les règles de chaque famille, avec leurs tests.',
       parties: [{ nom: 'Fiches de règles', cours: 'fiches', noms: { cours: 'Fiches de règles' } }] }
@@ -300,7 +303,7 @@
   }
   let suivi = lireSuivi();
   // occasions : [{ r, ok }] ; note sur 20 (ou null) ; type 'c' (dictée courte) ou 'b' (brevet)
-  function enregistrer(occasions, note, type) {
+  function enregistrer(occasions, note, type, info) {
     suivi = lireSuivi();
     const t0 = Date.now();
     occasions.forEach((o, i) => {
@@ -313,6 +316,8 @@
     ecrire(CLE_SUIVI, suivi);
     // dictée notée : compteur du rappel de sauvegarde (modules/sauvegarde.js)
     if (note != null && typeof ORT.apresDictee === 'function') ORT.apresDictee();
+    // succès (modules/mes-succes.js, s'il est chargé) : renvoie les nouveaux succès
+    return typeof ORT.succesApres === 'function' ? ORT.succesApres(occasions, note, type, info || {}) : [];
   }
   // les 20 dernières occasions d'une règle
   function stats(id) {
@@ -577,6 +582,11 @@
     c.appendChild(el('div', 'ort-legende', ['m', 'f', 't', 'n', 'v'].map(s => '<span><span class="ort-puce ort-s-' + s + '" aria-hidden="true"></span>' + LIBS[s] + '</span>').join('')));
     c.appendChild(el('p', 'ort-petit', 'Maîtrisée : au moins 80 % de réussite sur les 20 dernières occasions (5 occasions au moins). Une règle n’est proposée en mode automatique que si ses prérequis sont maîtrisés.'));
     zone.appendChild(c);
+    // succès, après les règles (modules/mes-succes.js) ; adresse suivi.html#succes : amenés à l'écran
+    if (typeof ORT.carteSucces === 'function') {
+      zone.appendChild(ORT.carteSucces());
+      if (location.hash === '#succes' && !pageSuivi.vu) { pageSuivi.vu = true; setTimeout(() => versVue(document.getElementById('succes'), 'start'), 60); }
+    }
     SOM.marquer({ fait: true });
     // Firefox, page ouverte depuis l'ordinateur (file://) : chaque page garde ses données pour elle seule
     if (!nb && location.protocol === 'file:' && /Firefox\//.test(navigator.userAgent)) {

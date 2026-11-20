@@ -12,13 +12,14 @@
    ============================================================ */
 'use strict';
 
-const VERSION = 'orthographe-v1';
+const VERSION = 'orthographe-v2';
 const POLICES = 'orthographe-polices';
 const FICHIERS = [
   './', 'index.html', 'manifest.webmanifest',
   'assets/theme.css', 'assets/er.css', 'assets/sommaire.css', 'assets/sommaire.js', 'assets/hero.js',
+  'assets/succes.js', 'assets/succes.css',
   'modules/ort.css', 'modules/ort.js', 'modules/sauvegarde.js', 'modules/regles.js', 'modules/langue.js',
-  'modules/mots.js', 'modules/banque.js', 'modules/textes-brevet.js', 'modules/dictee.js',
+  'modules/mots.js', 'modules/banque.js', 'modules/textes-brevet.js', 'modules/dictee.js', 'modules/mes-succes.js',
   'modules/dictee_courte.html', 'modules/dictee_brevet.html', 'modules/suivi.html', 'modules/fiches.html',
   'icones/icone-192.png', 'icones/icone-512.png', 'icones/icone-maskable-512.png',
   'icones/apple-touch-icon.png', 'icones/favicon-32.png'
