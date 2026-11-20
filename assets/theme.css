@@ -74,6 +74,13 @@ html:root {
   --osc-ch1: #e8b400;   /* jaune */
   --osc-ch2: #2f6fe0;   /* bleu */
 
+  /* Succès (assets/succes.js) : couleur des médailles, une par niveau.
+     Le nom du niveau est toujours écrit à côté. */
+  --med-bronze:  #b4703f;
+  --med-argent:  #9ea6b0;
+  --med-or:      #d9a21b;
+  --med-platine: #4fb6c9;
+
   /* Anciennes variables d'accent, utilisées par les applications */
   --app-accent-50:  var(--paper);
   --app-accent-100: var(--paper-2);
